@@ -1,0 +1,96 @@
+﻿<!DOCTYPE html>
+<html lang="zh-cn">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0"/>
+    <title>{$page_seo.title}</title>
+    <meta name="keywords" content="{$page_seo.keyword}" />
+    <meta name="description" content="{$page_seo.description}" /> 
+    <link rel="stylesheet" href="__AUI__/css/amazeui.min.css">
+    <link rel="stylesheet" href="__STATIC__/css/common.css?12"> 
+    <!--[if (gte IE 9)|!(IE)]><!--> 
+	<script src="__AUI__/js/jquery.min.js"></script>
+    <script src="__AUI__/js/amazeui.lazyload.min.js"></script>
+    <script src="__STATIC__/js/base.js?20170621"></script>
+	<!--<![endif]-->
+    {block name="css"}{/block}
+    {block name="style"}{/block}
+</head>
+<body> 
+    <!--头部-->
+    {block name="header"}{/block}
+    <!--end头部-->
+
+    <!--内容-->
+    {block name="content"}{/block}
+    <!--end内容-->
+
+    <!--底部-->
+    {block name="footer"}
+	{/block}
+    <!--end底部-->
+    
+<script src="__AUI__/js/amazeui.min.js"></script>
+<script src="__STATIC__/js/clipboard.min.js"></script>
+<script>
+$(function() {
+	var wd = "{$Request.param.wd ?? ''}";
+    $('.cxx-goods-list').off('click').on('click', '.cxx-prize', function(e) {
+        
+        if($(".cxx-goods-list").length == 0) return;
+        var scrollTop = window.pageYOffset  
+                || document.documentElement.scrollTop  
+                || document.body.scrollTop  
+                || 0;
+		window.localStorage.setItem("p", $('#p').html());
+        window.localStorage.setItem("top", scrollTop);
+        window.localStorage.setItem("html", $(".cxx-goods-list").html());
+		window.localStorage.setItem("page", $(".cxx-this-page").parent().html());
+        window.localStorage.setItem("url", window.location.href);
+        window.location.href = $(this).attr('data-url');
+    });
+    if(window.localStorage.getItem("url") == window.location.href && window.localStorage.getItem("top") != "null") {
+        $(".cxx-goods-list").html(window.localStorage.getItem("html"));
+        $("img.lazy").lazyload();
+		$(".cxx-this-page").parent().html(window.localStorage.getItem("page"));
+        document.body.scrollTop = window.localStorage.getItem("top");
+		p = parseInt(window.localStorage.getItem("p"));
+		window.localStorage.setItem("p", "null");
+        window.localStorage.setItem("top", "null");
+        window.localStorage.setItem("html", "null");
+    }else{
+		p = 1;
+		cxxia.goodList({p:p,wd:wd, type:'post', url:"{:\\think\\Request::instance()->baseUrl()}"});
+	}
+    
+    $(window).scroll(function () {
+        var scrollTop = $(this).scrollTop();
+        var scrollHeight = $(document).height();
+        var windowHeight = $(this).height();
+        if (scrollTop + windowHeight == scrollHeight) {
+            p++;
+           setTimeout(function(){cxxia.goodList({p:p, wd:wd,type:'post', url:"{:\\think\\Request::instance()->baseUrl()}"})},1000);
+        }
+    });
+});
+</script>
+<script>
+setTimeout(function() {
+	window.addEventListener("popstate", function(e) {
+		window.location.hash
+	}, false)
+}, 300);
+$(function() {
+
+
+    
+
+});
+</script>
+{block name="script"}{/block}
+<div style="display:none">
+{:get_config('WEB_SITE_STATISTICS','site_config', true)}
+{:get_config('WEB_SITE_TDJ','site_config', true)}
+</div>
+</body>
+</html>

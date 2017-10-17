@@ -1,0 +1,25 @@
+<div class="filter">
+    <form name="searchform" id='searchform' method="post" action="{:Url('DaogouCoupon/index')}">
+        <div class="screen-toggle" style="height: auto; overflow: visible;">
+            <div class="sort-list bg-gc cl">
+                <div class="kind"><i class="Hui-iconfont">&#xe675;</i>排序筛选</div>
+                <ul class="sort-item">
+                                      
+                </ul>
+            </div>
+            <div class="sort-bg clearfix">
+                    <div class="sort-l">
+                        <span class="sort-head">采集入库：</span>
+                        <ul> 
+                            
+                            <li id="cate_select">
+                                <label>入库分类：</label>
+                                <select class="cate_select mr-5" data-pid="0" data-uri="{:url('GoodsCate/ajax_getchilds')}" data-css="mr-5" data-style="" data-selected='{$Request.param.cid}'></select>
+                                <input type="hidden"  id="cate_id" name="cid" value="">
+                            </li>                          
+                        </ul>
+                    </div>
+                                      
+            </div>
+        </div>
+    </div>

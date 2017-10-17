@@ -1,0 +1,211 @@
+{extend name="public/base" /}
+{block name="info"}
+<div class="Huialert Huialert-danger">
+    <i class="icon-remove"></i>
+    <span>注意：确保淘宝API已经填写，先在淘宝联盟里面选择商品(不选择,列表没有商品)，然后再进行采集。</span>
+    <span class="ml-10">不知如何设置？<span><a href="http://bbs.chengxuxia.com/thread-1276-1-1.html" target="_blank">点此查看教程</a></span></span>
+</div>
+{/block}
+{block name="content"}
+<div class="page-container">
+<div class="content-box"> 
+    <table class="table table-border table-bordered table-hover table-bg">
+        <thead>
+        <tr class="text-c">
+            <th width="25"><input type="checkbox"></th>
+            <th width="50">序号</th>
+            <th width="200">选品库名称</th>
+            <th width="200">选品库ID</th>
+            <th width="100">佣金类型</th>
+            <th width="150">操作</th>
+        </tr>
+        </thead>
+        <tbody>
+        {empty name="list"}
+        <tr class="table-empty">
+            <td class="text-c empty-info" colspan="20">
+                <i class="Hui-iconfont f-30">&#xe6b5;</i> 暂无数据<br>
+            </td>
+        </tr>
+        {else /}
+        {volist name="list" id="vo" key='i'}
+        <tr class="text-c">
+            <td><input type="checkbox" name="id[]" value="{$i}"></td>
+            <td>{$i}</td>
+            <td>{$vo.favorites_title}</td>
+            <td>{$vo.favorites_id}</td>
+            <td>
+                <span style="color:red">
+                {switch name='vo.type'}
+                    {case value='1'}通用{/case}
+                    {case value='2'}高佣{/case}
+                {/switch}
+                </span>
+            </td>
+            <td class="f-14">
+                <span data-toggle="tooltip" data-placement="top" data-title="采集-{$vo.favorites_title}"  class="btn btn-default radius size-S f-14"  data-id="{$vo.favorites_id}" onclick="layerOpen('选择入库分类','{:url(\'Favorites/cate\', [\'fid\' => $vo.favorites_id])}')"><i class="Hui-iconfont">&#xe641;</i></span> 
+            </td>
+        </tr>
+        {/volist}
+        {/empty}
+        </tbody>
+    </table>
+</div>
+</div>
+<div class="page-bootstrap">{$page ?? ''}</div>
+{/block}
+{block name="script"}
+<script type="text/javascript" src="__LIB__/jquery/1.9.1/jquery.form.js"></script> 
+<script type="text/javascript" src="__STATIC__/js/admin.js?8569"></script>
+<script>
+function layerOpen(title, url, opt) {
+    if (typeof opt === "undefined") opt = {nav: true};
+    w = opt.w || "40vw";
+    h = opt.h || "40vh";
+    // 不支持vh,vw单位时采取js动态获取
+    if (!attr_support('height', '10vh')) {
+        w = w.replace(/([\d\.]+)(vh|vw)/, function (source, num, unit) {
+            return $(window).width() * num / 100 + 'px';
+        });
+        h = h.replace(/([\d\.]+)(vh|vw)/, function (source, num, unit) {
+            return $(window).height() * num / 100 + 'px';
+        });
+    }
+
+    $.getJSON(url, function(result){
+        if(result.code == 1){
+            layer.open({
+                type: 1,
+                skin: 'demo-class',
+                area: ['460px'],
+                anim: 5,
+                title: title,
+                closeBtn: 2,
+                shift: 5,
+                shadeClose: false,
+                content: result.data,
+                scrollbar: false,
+                success: function () {
+                    $('.demo-class .layui-layer-setwin').after('<div class="submit-btn"><button type="submit" class="btn btn-success radius-rounded">&nbsp;<i class="Hui-iconfont">&#xe6a7;</i> 提交&nbsp;</button><button type="button" class="btn btn-default radius-rounded ml-20" onClick="layer_close();">&nbsp;<i class="Hui-iconfont">&#xe6a6;</i> 取消&nbsp;</button></div>');
+                    $(".submit-btn button[type='submit']").on('click',function(){
+                        var actionForm = $('.layui-layer-content #form'),
+                            formUrl = actionForm.attr('action');
+                        $.ajax({
+                            type: "POST",
+                            url: formUrl,
+                            dataType: "json",
+                            data: actionForm.serialize(),
+                            success: complete,
+                            
+                        });
+                        
+                        var p = 2;
+                        function complete(result){
+                            if(result.code == 1){
+                               layer.open({
+                                  type: 1 ,
+                                  title: result.msg,
+                                  skin:'layui-layer-rim',
+                                  shade: 0.4,
+                                  content: result.data,
+                                  yes: function(){
+                                    layer.closeAll();
+                                  } 
+                                });
+                                
+                                p = 2;
+                                collect_page();
+                            } else {
+                                layer.msg(result.msg, {icon: 2, time: 3000});   
+                                
+                            }
+                        }
+
+                        function collect_page(){
+
+                            var list = 'p='+p;
+                            $.getJSON(formUrl, list, function(result){
+                            if(result.code == 1){
+                                $('.layui-layer-content').html(result.data);
+                                p++;
+                                collect_page(p);
+                                
+                            }else{
+                                layer.closeAll();
+                                layer.msg(result.msg, {icon: 1, time: 3000}); 
+                                
+                            }
+                        
+                            });
+                        }
+                        
+                                             
+                        
+                    })
+                }
+
+       
+            });
+                
+        }
+    });
+    
+};
+
+$('.collect').unbind("click").on('click',function()
+{
+        var self = this, id = $(this).attr('data-id');
+            collect_url =  "{:Url('Favorites/collect')}";
+            $.ajax({
+                type: "POST",
+                url: collect_url,
+                dataType: "json",
+                data: {fid: id },
+                success: complete,
+                
+            });
+            
+            var p = 2;
+            function complete(result){
+                if(result.code == 1){
+                   layer.open({
+                      type: 1 ,
+                      title: result.msg,
+                      skin:'layui-layer-rim',
+                      shade: 0.4,
+                      content: result.data,
+                      yes: function(){
+                        layer.closeAll();
+                      } 
+                    });
+                    
+                    p = 2;
+                    collect_page();
+                } else {
+                    layer.msg(result.msg, {icon: 2, time: 3000});   
+                    
+                }
+            }
+
+            function collect_page(){
+
+                var list = 'fid=' + id +'&p='+p;
+                $.getJSON(collect_url, list, function(result){
+                if(result.code == 1){
+                    $('.layui-layer-content').html(result.data);
+                    p++;
+                    collect_page(p);
+                    
+                }else{
+                    layer.closeAll();
+                    layer.msg(result.msg, {icon: 1, time: 3000}); 
+                    
+                }
+            
+                });
+            }   
+             
+});               
+</script>
+{/block}
+
